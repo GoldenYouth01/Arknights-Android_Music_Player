@@ -1,0 +1,185 @@
+package com.example.musicsiren.ui.screens
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.musicsiren.playback.PlaybackUiState
+import com.example.musicsiren.ui.components.AppPause
+import com.example.musicsiren.ui.components.AppSkipNext
+import com.example.musicsiren.ui.components.AppSkipPrevious
+import com.example.musicsiren.ui.components.CoverImage
+import com.example.musicsiren.ui.theme.AccentCyan
+import com.example.musicsiren.ui.theme.AccentTeal
+import com.example.musicsiren.ui.theme.ProgressFill
+import com.example.musicsiren.ui.theme.ProgressTrack
+import com.example.musicsiren.ui.theme.SirenType
+import com.example.musicsiren.ui.theme.TextPrimary
+import com.example.musicsiren.ui.theme.TextSecondary
+import com.example.musicsiren.ui.util.formatClock
+
+/**
+ * 全屏播放页：模糊封面背景 + 居中大封面 + 细线可拖动进度条 + 时钟读数 + 传输控制。
+ */
+@Composable
+fun NowPlayingScreen(
+    state: PlaybackUiState,
+    onBack: () -> Unit,
+    onTogglePlay: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
+    onSeek: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BackHandler(enabled = true) { onBack() }
+
+    Box(modifier.fillMaxSize()) {
+        // 模糊背景（coverDeUrl 为 JPEG 大图，适合做背景）
+        CoverImage(
+            url = state.coverUrl,
+            modifier = Modifier.fillMaxSize().blur(80.dp),
+            contentScale = ContentScale.Crop,
+        )
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(
+                    listOf(
+                        androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.65f),
+                        androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.85f),
+                    )
+                )
+            )
+        )
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 28.dp),
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = TextPrimary)
+                }
+                Text(
+                    text = "正在播放",
+                    style = SirenType.DisplaySans,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(48.dp))
+            }
+            Spacer(Modifier.weight(0.3f))
+            CoverImage(
+                url = state.coverUrl,
+                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                contentScale = ContentScale.Crop,
+            )
+            Spacer(Modifier.weight(0.15f))
+            Text(
+                text = state.currentSong?.name ?: "",
+                style = SirenType.DisplaySerif.copy(fontSize = 26.sp),
+                color = TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = state.currentSong?.artists?.joinToString(" / ") ?: "",
+                style = SirenType.Body,
+                color = AccentTeal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.weight(0.15f))
+
+            // 进度条 + 时钟读数
+            val durationMs = state.durationMs.coerceAtLeast(1L)
+            var dragPosition by remember { mutableStateOf<Float?>(null) }
+            val displayPosition = dragPosition ?: state.positionMs.toFloat()
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(formatClock(state.positionMs), style = SirenType.Clock, color = TextSecondary)
+                Text(formatClock(durationMs), style = SirenType.Clock, color = TextSecondary)
+            }
+            Slider(
+                value = displayPosition.coerceIn(0f, durationMs.toFloat()),
+                onValueChange = { dragPosition = it },
+                onValueChangeFinished = {
+                    dragPosition?.let { onSeek(it.toLong()) }
+                    dragPosition = null
+                },
+                valueRange = 0f..durationMs.toFloat(),
+                colors = SliderDefaults.colors(
+                    thumbColor = AccentCyan,
+                    activeTrackColor = ProgressFill,
+                    inactiveTrackColor = ProgressTrack,
+                    disabledActiveTrackColor = ProgressFill,
+                    disabledInactiveTrackColor = ProgressTrack,
+                ),
+            )
+
+            // 传输控制
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
+                    Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
+                }
+                IconButton(onClick = onTogglePlay, modifier = Modifier.size(88.dp)) {
+                    Icon(
+                        imageVector = if (state.isPlaying) AppPause else Icons.Default.PlayArrow,
+                        contentDescription = if (state.isPlaying) "暂停" else "播放",
+                        tint = AccentCyan,
+                        modifier = Modifier.size(56.dp),
+                    )
+                }
+                IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
+                    Icon(AppSkipNext, contentDescription = "下一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+    }
+}

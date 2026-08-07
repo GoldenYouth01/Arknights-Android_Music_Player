@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 与 Compose 主题一致的近黑背景 -->
+    <color name="background">#0A0A0A</color>
+    <color name="ic_launcher_background">#0A0A0A</color>
+</resources>

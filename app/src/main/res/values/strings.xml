@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">塞壬唱片</string>
+    <string name="tab_albums">专辑</string>
+    <string name="tab_search">搜索</string>
+    <string name="tab_downloads">下载</string>
+    <string name="search_hint">搜索专辑 / 歌曲</string>
+    <string name="play_all">播放全部</string>
+    <string name="refresh_catalog">刷新歌曲目录</string>
+    <string name="retry">重试</string>
+    <string name="empty_albums">暂无专辑，下拉刷新试试</string>
+    <string name="error_network">网络请求失败，请检查网络</string>
+    <string name="delete_confirm_title">删除下载</string>
+    <string name="delete_confirm_message">确定删除这首歌的本地文件吗？将释放约 %1$s 空间。</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="download_confirm_title">开始下载</string>
+    <string name="download_confirm_message">每首歌约 54 MB（WAV 无损），本次下载约需 %1$s 空间。确定继续吗？</string>
+    <string name="download">下载</string>
+    <string name="storage_low">存储空间不足，请先清理再下载</string>
+</resources>
