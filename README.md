@@ -11,7 +11,7 @@
 
 ▶️ **[下载最新版 APK](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases/latest/download/app-release.apk)**
 
-- 版本 `v0.1.0` · 约 13 MB · 正式签名版，可直接安装
+- 版本 `v0.2.0` · 约 13 MB · 正式签名版，可直接安装
 - 历史版本见 [Releases 页面](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases)
 - 安装提示：Android 手机下载后直接打开 APK 安装；如提示"未知来源"，在设置中允许本次安装即可
 
