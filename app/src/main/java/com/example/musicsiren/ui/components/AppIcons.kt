@@ -39,3 +39,12 @@ val AppQueueMusic: ImageVector by lazy {
 val AppDownloadDone: ImageVector by lazy {
     sirenIcon("DownloadDone", "M5,18h14v2H5v-2zm4.6,-2.7L5,10.7l2,-1.1 2.6,2.6L17,6l2,1.4 -9.4,9.9z")
 }
+val AppShuffle: ImageVector by lazy {
+    sirenIcon("Shuffle", "M10.59,9.17L5.41,4 4,5.41l5.17,5.17 1.42,-1.41zM14.5,4l2.04,2.04L4,18.59 5.41,20 17.96,7.46 20,9.5V4h-5.5zm0.33,9.41l-1.41,1.41 3.13,3.13L14.5,20H20v-5.5l-2.04,2.04 -3.13,-3.13z")
+}
+val AppRepeat: ImageVector by lazy {
+    sirenIcon("Repeat", "M7,7h10v3l4,-4 -4,-4v3H5v6h2V7zM17,17H7v-3l-4,4 4,4v-3h12v-6h-2v4z")
+}
+val AppRepeatOne: ImageVector by lazy {
+    sirenIcon("RepeatOne", "M7,7h10v3l4,-4 -4,-4v3H5v6h2V7zM17,17H7v-3l-4,4 4,4v-3h12v-6h-2v4zM13,15V9h-1l-2,1v1h1.5v4H13z")
+}

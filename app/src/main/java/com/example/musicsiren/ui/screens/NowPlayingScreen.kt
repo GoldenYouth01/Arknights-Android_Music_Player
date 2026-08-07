@@ -38,8 +38,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.Player
 import com.example.musicsiren.playback.PlaybackUiState
 import com.example.musicsiren.ui.components.AppPause
+import com.example.musicsiren.ui.components.AppRepeat
+import com.example.musicsiren.ui.components.AppRepeatOne
+import com.example.musicsiren.ui.components.AppShuffle
 import com.example.musicsiren.ui.components.AppSkipNext
 import com.example.musicsiren.ui.components.AppSkipPrevious
 import com.example.musicsiren.ui.components.CoverImage
@@ -63,6 +67,8 @@ fun NowPlayingScreen(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSeek: (Long) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BackHandler(enabled = true) { onBack() }
@@ -158,12 +164,20 @@ fun NowPlayingScreen(
                 ),
             )
 
-            // 传输控制
+            // 传输控制 + 播放模式
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                IconButton(onClick = onToggleShuffle, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        AppShuffle,
+                        contentDescription = "随机播放",
+                        tint = if (state.shuffleEnabled) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
                 IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
                     Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
                 }
@@ -177,6 +191,14 @@ fun NowPlayingScreen(
                 }
                 IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
                     Icon(AppSkipNext, contentDescription = "下一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
+                }
+                IconButton(onClick = onCycleRepeat, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = if (state.repeatMode == Player.REPEAT_MODE_ONE) AppRepeatOne else AppRepeat,
+                        contentDescription = "循环播放",
+                        tint = if (state.repeatMode != Player.REPEAT_MODE_OFF) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(24.dp),
+                    )
                 }
             }
             Spacer(Modifier.height(20.dp))

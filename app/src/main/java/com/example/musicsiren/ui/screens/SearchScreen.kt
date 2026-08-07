@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -28,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -39,9 +43,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.musicsiren.R
 import com.example.musicsiren.data.search.CatalogState
 import com.example.musicsiren.di.AppContainer
+import com.example.musicsiren.domain.model.Song
 import com.example.musicsiren.playback.PlaybackViewModel
 import com.example.musicsiren.ui.components.AlbumRow
 import com.example.musicsiren.ui.components.HairlineDivider
+import com.example.musicsiren.ui.components.PlaylistPicker
 import com.example.musicsiren.ui.components.SongRow
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.Background
@@ -65,6 +71,8 @@ fun SearchScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val catalogState by container.songCatalog.state.collectAsStateWithLifecycle()
+    val playlists by container.playlistRepository.playlists.collectAsStateWithLifecycle()
+    var pendingAddSong by remember { mutableStateOf<Song?>(null) }
 
     Column(Modifier.fillMaxSize().background(Background).imePadding()) {
         // 搜索框
@@ -133,6 +141,15 @@ fun SearchScreen(
                             index = -1,
                             isActive = playbackViewModel.uiState.value.currentSong?.cid == song.cid,
                             onClick = { playbackViewModel.playQueue(uiState.songs, uiState.songs.indexOf(song), null, null) },
+                            menuItems = { dismiss ->
+                                DropdownMenuItem(
+                                    text = { Text("加入歌单") },
+                                    onClick = {
+                                        dismiss()
+                                        pendingAddSong = song
+                                    },
+                                )
+                            },
                         )
                         HairlineDivider()
                     }
@@ -153,6 +170,22 @@ fun SearchScreen(
                 }
             }
         }
+    }
+
+    // 加入歌单选择器
+    pendingAddSong?.let { song ->
+        PlaylistPicker(
+            playlists = playlists,
+            onAddToPlaylist = { id ->
+                container.playlistRepository.addSong(id, song)
+                pendingAddSong = null
+            },
+            onCreateNew = { name ->
+                container.playlistRepository.createPlaylist(name, song)
+                pendingAddSong = null
+            },
+            onDismiss = { pendingAddSong = null },
+        )
     }
 }
 

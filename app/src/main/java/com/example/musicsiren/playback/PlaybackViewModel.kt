@@ -35,6 +35,9 @@ data class PlaybackUiState(
     val coverUrl: String? = null,
     val albumName: String? = null,
     val isDownloaded: Boolean = false,
+    // 播放模式：作用于当前队列（即播放歌曲时所在的列表）
+    val repeatMode: Int = Player.REPEAT_MODE_OFF,
+    val shuffleEnabled: Boolean = false,
 )
 
 /**
@@ -94,6 +97,8 @@ class PlaybackViewModel(
         override fun onPlaybackStateChanged(playbackState: Int) = updateFromPlayer()
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) = updateFromPlayer()
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) = updateFromPlayer()
+        override fun onRepeatModeChanged(repeatMode: Int) = updateFromPlayer()
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = updateFromPlayer()
     }
 
     private fun updateFromPlayer() {
@@ -110,6 +115,8 @@ class PlaybackViewModel(
             coverUrl = currentCoverUrl,
             albumName = currentAlbumName,
             isDownloaded = song?.let { downloadRepository.localPathFor(it.cid) != null } == true,
+            repeatMode = player.repeatMode,
+            shuffleEnabled = player.shuffleModeEnabled,
         )
     }
 
@@ -172,6 +179,21 @@ class PlaybackViewModel(
     fun togglePlay() = controller?.let { if (it.isPlaying) it.pause() else it.play() }
     fun next() = controller?.seekToNextMediaItem()
     fun previous() = controller?.seekToPreviousMediaItem()
+
+    /** 循环模式：顺序 → 全部循环 → 单曲循环 → 顺序 */
+    fun cycleRepeatMode() {
+        val player = controller ?: return
+        player.repeatMode = when (player.repeatMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+            else -> Player.REPEAT_MODE_OFF
+        }
+    }
+
+    fun toggleShuffle() {
+        val player = controller ?: return
+        player.shuffleModeEnabled = !player.shuffleModeEnabled
+    }
     fun seekTo(ms: Long) = controller?.seekTo(ms.coerceAtLeast(0L))
     fun seekToIndex(index: Int) = controller?.let {
         it.seekToDefaultPosition(index)

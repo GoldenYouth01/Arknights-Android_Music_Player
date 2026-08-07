@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +51,7 @@ import com.example.musicsiren.ui.components.DownloadAffordance
 import com.example.musicsiren.ui.components.ErrorState
 import com.example.musicsiren.ui.components.HairlineDivider
 import com.example.musicsiren.ui.components.LoadingBox
+import com.example.musicsiren.ui.components.PlaylistPicker
 import com.example.musicsiren.ui.components.SongRow
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.AccentTeal
@@ -77,7 +79,10 @@ fun AlbumDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val downloads by container.downloadRepository.records.collectAsStateWithLifecycle()
+    val playlists by container.playlistRepository.playlists.collectAsStateWithLifecycle()
     var pendingDownload by remember { mutableStateOf<Pair<Song, Album>?>(null) }
+    // song to coverUrl
+    var pendingAddSong by remember { mutableStateOf<Pair<Song, String?>?>(null) }
 
     Box(Modifier.fillMaxSize().background(Background)) {
         when (val state = uiState) {
@@ -162,6 +167,15 @@ fun AlbumDetailScreen(
                                     },
                                 )
                             },
+                            menuItems = { dismiss ->
+                                DropdownMenuItem(
+                                    text = { Text("加入歌单") },
+                                    onClick = {
+                                        dismiss()
+                                        pendingAddSong = song to detail.album.coverUrl
+                                    },
+                                )
+                            },
                         )
                         HairlineDivider()
                     }
@@ -199,6 +213,22 @@ fun AlbumDetailScreen(
                 }
             },
             containerColor = SurfaceDark,
+        )
+    }
+
+    // 加入歌单选择器
+    pendingAddSong?.let { (song, coverUrl) ->
+        PlaylistPicker(
+            playlists = playlists,
+            onAddToPlaylist = { playlistId ->
+                container.playlistRepository.addSong(playlistId, song, coverUrl)
+                pendingAddSong = null
+            },
+            onCreateNew = { name ->
+                container.playlistRepository.createPlaylist(name, song, coverUrl)
+                pendingAddSong = null
+            },
+            onDismiss = { pendingAddSong = null },
         )
     }
 }

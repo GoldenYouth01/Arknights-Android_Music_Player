@@ -41,12 +41,15 @@ import androidx.navigation.compose.rememberNavController
 import com.example.musicsiren.di.AppContainer
 import com.example.musicsiren.playback.PlaybackViewModel
 import com.example.musicsiren.ui.components.AppDownload
+import com.example.musicsiren.ui.components.AppQueueMusic
 import com.example.musicsiren.ui.components.PlayerBar
 import com.example.musicsiren.ui.components.PlayerDrawer
 import com.example.musicsiren.ui.screens.AlbumDetailScreen
 import com.example.musicsiren.ui.screens.AlbumListScreen
 import com.example.musicsiren.ui.screens.DownloadsScreen
 import com.example.musicsiren.ui.screens.NowPlayingScreen
+import com.example.musicsiren.ui.screens.PlaylistDetailScreen
+import com.example.musicsiren.ui.screens.PlaylistsScreen
 import com.example.musicsiren.ui.screens.SearchScreen
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.Background
@@ -79,9 +82,11 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                             onNext = { playbackViewModel.next() },
                             onPrevious = { playbackViewModel.previous() },
                             onOpenDrawer = { playbackViewModel.showDrawer() },
+                            onToggleShuffle = { playbackViewModel.toggleShuffle() },
+                            onCycleRepeat = { playbackViewModel.cycleRepeatMode() },
                         )
                     }
-                    if (currentRoute in setOf(Routes.ALBUMS, Routes.SEARCH, Routes.DOWNLOADS)) {
+                    if (currentRoute in setOf(Routes.ALBUMS, Routes.SEARCH, Routes.PLAYLISTS, Routes.DOWNLOADS)) {
                         SirenNavBar(
                             currentRoute = currentRoute,
                             onSelect = { route ->
@@ -113,6 +118,12 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                         onAlbumClick = { cid -> navController.navigate(Routes.albumDetail(cid)) },
                     )
                 }
+                composable(Routes.PLAYLISTS) {
+                    PlaylistsScreen(
+                        container = container,
+                        onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) },
+                    )
+                }
                 composable(Routes.DOWNLOADS) {
                     DownloadsScreen(
                         container = container,
@@ -122,6 +133,14 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                 composable(Routes.ALBUM_DETAIL) { entry ->
                     AlbumDetailScreen(
                         cid = entry.arguments?.getString("cid") ?: "",
+                        container = container,
+                        playbackViewModel = playbackViewModel,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.PLAYLIST_DETAIL) { entry ->
+                    PlaylistDetailScreen(
+                        playlistId = entry.arguments?.getString("id") ?: "",
                         container = container,
                         playbackViewModel = playbackViewModel,
                         onBack = { navController.popBackStack() },
@@ -143,6 +162,8 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                 onNext = { playbackViewModel.next() },
                 onPrevious = { playbackViewModel.previous() },
                 onSeek = { playbackViewModel.seekTo(it) },
+                onToggleShuffle = { playbackViewModel.toggleShuffle() },
+                onCycleRepeat = { playbackViewModel.cycleRepeatMode() },
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -181,6 +202,14 @@ private fun SirenNavBar(currentRoute: String?, onSelect: (String) -> Unit) {
                 route = Routes.SEARCH,
                 selected = currentRoute == Routes.SEARCH,
                 onClick = { onSelect(Routes.SEARCH) },
+                modifier = Modifier.weight(1f),
+            )
+            NavItem(
+                label = "歌单",
+                icon = AppQueueMusic,
+                route = Routes.PLAYLISTS,
+                selected = currentRoute == Routes.PLAYLISTS,
+                onClick = { onSelect(Routes.PLAYLISTS) },
                 modifier = Modifier.weight(1f),
             )
             NavItem(

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import com.example.musicsiren.playback.PlaybackUiState
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.PlayerBarColor
@@ -43,6 +44,8 @@ fun PlayerBar(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onOpenDrawer: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(color = PlayerBarColor, modifier = modifier.fillMaxWidth()) {
@@ -85,6 +88,14 @@ fun PlayerBar(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
+                IconButton(onClick = onToggleShuffle, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        AppShuffle,
+                        contentDescription = "随机播放",
+                        tint = if (state.shuffleEnabled) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
                 IconButton(onClick = onPrevious) {
                     Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary)
                 }
@@ -97,6 +108,14 @@ fun PlayerBar(
                 }
                 IconButton(onClick = onNext) {
                     Icon(AppSkipNext, contentDescription = "下一首", tint = TextPrimary)
+                }
+                IconButton(onClick = onCycleRepeat, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = if (state.repeatMode == Player.REPEAT_MODE_ONE) AppRepeatOne else AppRepeat,
+                        contentDescription = "循环播放",
+                        tint = if (state.repeatMode != Player.REPEAT_MODE_OFF) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(18.dp),
+                    )
                 }
                 IconButton(onClick = onOpenDrawer) {
                     Icon(AppQueueMusic, contentDescription = "播放队列", tint = TextSecondary)
