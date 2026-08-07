@@ -59,5 +59,3 @@ app/src/main/java/com/example/musicsiren/
 ## Star 历史
 
 [![Star History Chart](https://api.star-history.com/svg?repos=GoldenYouth01/Arknights-Android_Music_Player&type=Date)](https://star-history.com/#GoldenYouth01/Arknights-Android_Music_Player&Date)
-
-> 图表由 [star-history.com](https://star-history.com) 提供并自动更新；若图片暂时无法加载，是第三方服务偶发限流，稍后会自动恢复。
