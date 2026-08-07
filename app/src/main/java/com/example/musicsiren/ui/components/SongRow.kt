@@ -3,6 +3,7 @@ package com.example.musicsiren.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,6 +51,7 @@ fun SongRow(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
     menuItems: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
+    coverUrl: String? = null,
 ) {
     val accent = MaterialTheme.colorScheme.primary
     var menuOpen by remember { mutableStateOf(false) }
@@ -73,6 +76,13 @@ fun SongRow(
                     .background(if (isActive) accent else Color.Transparent)
             )
             Spacer(Modifier.width(12.dp))
+            if (coverUrl != null) {
+                CoverImage(
+                    url = coverUrl,
+                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(2.dp)),
+                )
+                Spacer(Modifier.width(10.dp))
+            }
             Text(
                 text = if (index >= 0) (index + 1).toString().padStart(2, '0') else "··",
                 style = SirenType.Clock,

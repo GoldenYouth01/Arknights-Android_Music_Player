@@ -80,7 +80,6 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                             onTap = { playbackViewModel.showNowPlaying() },
                             onTogglePlay = { playbackViewModel.togglePlay() },
                             onNext = { playbackViewModel.next() },
-                            onPrevious = { playbackViewModel.previous() },
                             onOpenDrawer = { playbackViewModel.showDrawer() },
                             onToggleShuffle = { playbackViewModel.toggleShuffle() },
                             onCycleRepeat = { playbackViewModel.cycleRepeatMode() },

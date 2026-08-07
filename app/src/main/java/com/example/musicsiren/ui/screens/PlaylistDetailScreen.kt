@@ -144,6 +144,7 @@ fun PlaylistDetailScreen(
                             onClick = {
                                 playbackViewModel.playQueue(viewModel.toSongs(), index, playlist.coverUrl, playlist.name)
                             },
+                            coverUrl = ps.coverUrl,
                             menuItems = { dismiss ->
                                 DropdownMenuItem(
                                     text = { Text("从歌单移除") },

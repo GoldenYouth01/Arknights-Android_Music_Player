@@ -19,8 +19,8 @@ class PlaylistTest {
             name = "测试歌单",
             coverUrl = "https://web.hycdn.cn/siren/pic/x.png",
             songs = listOf(
-                PlaylistSong("1", "毛茸茸大决战！", listOf("塞壬唱片-MSR"), "8928"),
-                PlaylistSong("2", "Every Road is a Yes", listOf("AIYUE blessed"), "3883"),
+                PlaylistSong("1", "毛茸茸大决战！", listOf("塞壬唱片-MSR"), "8928", "https://web.hycdn.cn/siren/pic/1.png"),
+                PlaylistSong("2", "Every Road is a Yes", listOf("AIYUE blessed"), "3883", null),
             ),
         )
         val encoded = json.encodeToString(Playlist.serializer(), playlist)

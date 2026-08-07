@@ -28,7 +28,8 @@ val AppSkipNext: ImageVector by lazy {
     sirenIcon("SkipNext", "M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z")
 }
 val AppSkipPrevious: ImageVector by lazy {
-    sirenIcon("SkipPrevious", "M6,6h2v12H6zm3.5,6l8.5,6V6z")
+    // 精修版：竖条稍加宽加高，三角更饱满、指向左（跳回上一首）
+    sirenIcon("SkipPrevious", "M6,5.5h2.5v13H6zM10,12l8.5,-6v12z")
 }
 val AppDownload: ImageVector by lazy {
     sirenIcon("Download", "M19,9h-4V3H9v6H5l7,7 7,-7zM5,18v2h14v-2H5z")

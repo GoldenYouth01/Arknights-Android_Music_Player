@@ -42,7 +42,6 @@ fun PlayerBar(
     onTap: () -> Unit,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
-    onPrevious: () -> Unit,
     onOpenDrawer: () -> Unit,
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
@@ -95,9 +94,6 @@ fun PlayerBar(
                         tint = if (state.shuffleEnabled) AccentCyan else TextSecondary,
                         modifier = Modifier.size(18.dp),
                     )
-                }
-                IconButton(onClick = onPrevious) {
-                    Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary)
                 }
                 IconButton(onClick = onTogglePlay) {
                     Icon(

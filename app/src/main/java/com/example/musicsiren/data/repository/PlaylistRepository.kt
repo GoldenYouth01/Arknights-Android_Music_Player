@@ -41,7 +41,7 @@ class PlaylistRepository(
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return ""
         val id = UUID.randomUUID().toString()
-        val song = firstSong?.let { PlaylistSong(it.cid, it.name, it.artists, it.albumCid) }
+        val song = firstSong?.let { PlaylistSong(it.cid, it.name, it.artists, it.albumCid, coverUrl) }
         val playlist = Playlist(
             id = id,
             name = trimmed,
@@ -59,7 +59,7 @@ class PlaylistRepository(
         if (idx < 0) return
         val current = list[idx]
         if (current.songs.any { it.cid == song.cid }) return // 去重
-        val newSong = PlaylistSong(song.cid, song.name, song.artists, song.albumCid)
+        val newSong = PlaylistSong(song.cid, song.name, song.artists, song.albumCid, coverUrl)
         val updated = current.copy(
             coverUrl = current.coverUrl ?: coverUrl,
             songs = current.songs + newSong,

@@ -9,6 +9,7 @@ data class PlaylistSong(
     val name: String,
     val artists: List<String> = emptyList(),
     val albumCid: String? = null,
+    val coverUrl: String? = null,
 )
 
 @Serializable
