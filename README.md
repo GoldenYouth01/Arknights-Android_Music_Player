@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/github/license/GoldenYouth01/Arknights-Android_Music_Player?color=blue)](LICENSE)
 
 作者听夏活音乐听上瘾了，现有的塞壬唱片还是个网页，不太方便，于是做了一个便携式 Android 音乐 App，音乐源为 **Monster Siren Records（塞壬唱片）**。
+**仅供学习交流使用。**
 
 ## 下载
 
