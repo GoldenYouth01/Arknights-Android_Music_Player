@@ -1,4 +1,4 @@
-# 塞壬唱片 Siren Player —— 版本发布脚本
+﻿# 塞壬唱片 Siren Player —— 版本发布脚本
 # 统一处理：版本号修改（gradle.properties 唯一来源）→ 构建 release APK → 提交 → 打 tag → 推送 → 创建 GitHub Release 并上传 APK
 #
 # 用法（在项目根目录）：
@@ -19,14 +19,19 @@ $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 Set-Location $project
 
+# 用 .NET API 按 UTF-8 读写，避免 PowerShell 默认编码把中文注释写坏
 function Get-Prop([string]$key) {
-    $line = Select-String -Path "gradle.properties" -Pattern "^$key=(.+)$"
-    if (-not $line) { throw "gradle.properties 缺少 $key" }
-    $line.Matches[0].Groups[1].Value.Trim()
+    $path = Join-Path $project "gradle.properties"
+    $content = [System.IO.File]::ReadAllText($path)
+    $m = [regex]::Match($content, "(?m)^$key=(.+)$")
+    if (-not $m.Success) { throw "gradle.properties 缺少 $key" }
+    $m.Groups[1].Value.Trim()
 }
 function Set-Prop([string]$key, [string]$value) {
-    (Get-Content "gradle.properties") -replace "^$key=.*$", "$key=$value" |
-        Set-Content "gradle.properties" -Encoding ascii
+    $path = Join-Path $project "gradle.properties"
+    $content = [System.IO.File]::ReadAllText($path)
+    $content = [regex]::Replace($content, "(?m)^$key=.*$", "$key=$value")
+    [System.IO.File]::WriteAllText($path, $content, (New-Object System.Text.UTF8Encoding($false)))
 }
 
 $oldName = Get-Prop 'VERSION_NAME'

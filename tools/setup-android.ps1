@@ -1,4 +1,4 @@
-# 塞壬唱片 Android 音乐 App —— 开发环境搭建脚本（Windows 11 / PowerShell 5.1）
+﻿# 塞壬唱片 Android 音乐 App —— 开发环境搭建脚本（Windows 11 / PowerShell 5.1）
 # 幂等：可重复执行；每步用 Test-Path 守卫。
 # 用法：powershell -ExecutionPolicy Bypass -File tools\setup-android.ps1
 
