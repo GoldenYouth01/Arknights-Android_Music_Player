@@ -1,6 +1,18 @@
 # 塞壬唱片 · Siren Player
 
+[![GitHub release](https://img.shields.io/github/v/release/GoldenYouth01/Arknights-Android_Music_Player?label=Release&color=A0EDFF)](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases/latest)
+[![GitHub stars](https://img.shields.io/github/stars/GoldenYouth01/Arknights-Android_Music_Player?style=social)](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/stargazers)
+[![License](https://img.shields.io/github/license/GoldenYouth01/Arknights-Android_Music_Player?color=blue)](LICENSE)
+
 作者听夏活音乐听上瘾了，现有的塞壬唱片还是个网页，不太方便，于是做了一个便携式 Android 音乐 App，音乐源为 **Monster Siren Records（塞壬唱片）**。
+
+## 下载
+
+▶️ **[下载最新版 APK](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases/latest/download/app-release.apk)**
+
+- 版本 `v0.1.0` · 约 13 MB · 正式签名版，可直接安装
+- 历史版本见 [Releases 页面](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases)
+- 安装提示：Android 手机下载后直接打开 APK 安装；如提示"未知来源"，在设置中允许本次安装即可
 
 ## 功能
 
@@ -44,32 +56,8 @@ app/src/main/java/com/example/musicsiren/
   work/       下载 Worker
 ```
 
-## 版本发布
+## Star 历史
 
-### 版本号规则（严格管理）
+[![Star History Chart](https://api.star-history.com/svg?repos=GoldenYouth01/Arknights-Android_Music_Player&type=Date)](https://star-history.com/#GoldenYouth01/Arknights-Android_Music_Player&Date)
 
-- **语义化版本**：`MAJOR.MINOR.PATCH`（如 `0.1.0`）。`versionName` 即展示给用户的版本号
-- **versionCode**：单调递增的整数，Android 系统据此判断是否为"更新"——**每次发布必须比上一次大**
-- **唯一来源**：两个版本号都集中在 `gradle.properties` 的 `VERSION_CODE` / `VERSION_NAME`，不要手改 `app/build.gradle.kts`
-- **Tag 约定**：每次发布对应一个 `v{versionName}` 的 git tag
-
-### 发布步骤（一条命令）
-
-```powershell
-# 前置：gh 已登录
-gh auth login
-
-# 自动 patch+1（0.1.0 → 0.1.1，versionCode+1）并发布
-powershell -ExecutionPolicy Bypass -File tools\release.ps1
-
-# 或指定版本
-powershell -ExecutionPolicy Bypass -File tools\release.ps1 -VersionName 0.2.0 -Notes "新增 XX 功能"
-```
-
-脚本会依次完成：改版本号 → 构建 release APK → 提交 → 打 tag → 推送 → 创建 GitHub Release 并上传 APK。
-
-### 签名密钥（重要）
-
-Release APK 使用专用 keystore 签名，密钥文件在 **仓库外**（`D:\AndroidDev\keystores\`），签名信息存于 `keystore.properties`（已 gitignore）。
-
-> ⚠️ **请妥善备份 keystore 与密码**：丢失后将无法再发布可覆盖更新的新版本（Android 要求同一签名才能升级）。他人 clone 仓库时无此文件，release 构建将不打签名（仅用于调试，不可安装到已装过正式版的设备）。
+> 图表由 [star-history.com](https://star-history.com) 提供并自动更新；若图片暂时无法加载，是第三方服务偶发限流，稍后会自动恢复。
