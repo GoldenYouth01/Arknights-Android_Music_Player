@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitFactory {
     private const val BASE_URL = "https://monster-siren.hypergryph.com/"
-    /** 自建云端 API 地址（公开，非机密）。 */
+    /** 自建云端 API 地址（公开，非机密）。与站点既有应用共用 /api/（后端走 index.php 路由）。 */
     const val CLOUD_BASE_URL = "https://sevencentury.cn/"
 
     fun createJson(): Json = Json {
