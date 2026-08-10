@@ -62,7 +62,8 @@ import com.example.musicsiren.ui.util.formatClock
 import kotlinx.coroutines.launch
 
 /**
- * 全屏播放页：横向翻页 —— 页0 封面/进度/控制；页1 歌词（左滑进入，右滑返回）。
+ * 全屏播放页：横向翻页 —— 页0 封面；页1 歌词（左滑进入，右滑返回）。
+ * 头部/歌名/进度/传输控制为两页共享的页眉页脚，歌词显示在封面同款正方形区域内。
  * 模糊封面背景与蒙层两层页面共用。
  */
 @Composable
@@ -91,6 +92,11 @@ fun NowPlayingScreen(
         }
     }
 
+    // 进度条拖动暂存值（两页共享页脚，上提到本作用域，翻页时保持）
+    val durationMs = state.durationMs.coerceAtLeast(1L)
+    var dragPosition by remember { mutableStateOf<Float?>(null) }
+    val displayPosition = dragPosition ?: state.positionMs.toFloat()
+
     Box(modifier.fillMaxSize()) {
         // 模糊背景（两页共用）
         CoverImage(
@@ -109,153 +115,132 @@ fun NowPlayingScreen(
             )
         )
 
-        HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-            when (page) {
-                0 -> PlayerPage(
-                    state = state,
-                    onBack = onBack,
-                    onTogglePlay = onTogglePlay,
-                    onNext = onNext,
-                    onPrevious = onPrevious,
-                    onSeek = onSeek,
-                    onToggleShuffle = onToggleShuffle,
-                    onCycleRepeat = onCycleRepeat,
-                )
-                else -> LyricsPage(
-                    song = state.currentSong,
-                    lyricsState = lyricsUiState,
-                    positionMs = state.positionMs,
-                    isPlaying = state.isPlaying,
-                    onBack = { scope.launch { pagerState.animateScrollToPage(0) } },
-                    onTogglePlay = onTogglePlay,
-                )
-            }
-        }
-    }
-}
-
-/** 页0：封面 + 标题 + 进度 + 传输控制 + 随机/循环。 */
-@Composable
-private fun PlayerPage(
-    state: PlaybackUiState,
-    onBack: () -> Unit,
-    onTogglePlay: () -> Unit,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onSeek: (Long) -> Unit,
-    onToggleShuffle: () -> Unit,
-    onCycleRepeat: () -> Unit,
-) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 28.dp),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().padding(top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        // 共享页眉页脚 + 中部封面/歌词翻页区
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 28.dp),
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = TextPrimary)
+            // 页眉
+            Row(
+                Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = TextPrimary)
+                }
+                Text(
+                    text = "正在播放",
+                    style = SirenType.DisplaySans,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(48.dp))
             }
+            Spacer(Modifier.weight(0.3f))
+
+            // 翻页区：页0 封面图 / 页1 歌词（与旧封面同一正方形区域）
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+            ) { page ->
+                when (page) {
+                    0 -> CoverImage(
+                        url = state.coverUrl,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                    else -> LyricsContent(
+                        lyricsState = lyricsUiState,
+                        positionMs = state.positionMs,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+
+            Spacer(Modifier.weight(0.15f))
+
+            // 歌名 / 艺术家
             Text(
-                text = "正在播放",
-                style = SirenType.DisplaySans,
-                color = TextSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
+                text = state.currentSong?.name ?: "",
+                style = SirenType.DisplaySerif.copy(fontSize = 26.sp),
+                color = TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(48.dp))
-        }
-        Spacer(Modifier.weight(0.3f))
-        CoverImage(
-            url = state.coverUrl,
-            modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-            contentScale = ContentScale.Crop,
-        )
-        Spacer(Modifier.weight(0.15f))
-        Text(
-            text = state.currentSong?.name ?: "",
-            style = SirenType.DisplaySerif.copy(fontSize = 26.sp),
-            color = TextPrimary,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = state.currentSong?.artists?.joinToString(" / ") ?: "",
-            style = SirenType.Body,
-            color = AccentTeal,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.weight(0.15f))
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = state.currentSong?.artists?.joinToString(" / ") ?: "",
+                style = SirenType.Body,
+                color = AccentTeal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.weight(0.15f))
 
-        // 进度条 + 时钟读数
-        val durationMs = state.durationMs.coerceAtLeast(1L)
-        var dragPosition by remember { mutableStateOf<Float?>(null) }
-        val displayPosition = dragPosition ?: state.positionMs.toFloat()
+            // 进度条 + 时钟读数
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(formatClock(state.positionMs), style = SirenType.Clock, color = TextSecondary)
+                Text(formatClock(durationMs), style = SirenType.Clock, color = TextSecondary)
+            }
+            Slider(
+                value = displayPosition.coerceIn(0f, durationMs.toFloat()),
+                onValueChange = { dragPosition = it },
+                onValueChangeFinished = {
+                    dragPosition?.let { onSeek(it.toLong()) }
+                    dragPosition = null
+                },
+                valueRange = 0f..durationMs.toFloat(),
+                colors = SliderDefaults.colors(
+                    thumbColor = AccentCyan,
+                    activeTrackColor = ProgressFill,
+                    inactiveTrackColor = ProgressTrack,
+                    disabledActiveTrackColor = ProgressFill,
+                    disabledInactiveTrackColor = ProgressTrack,
+                ),
+            )
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatClock(state.positionMs), style = SirenType.Clock, color = TextSecondary)
-            Text(formatClock(durationMs), style = SirenType.Clock, color = TextSecondary)
+            // 传输控制 + 播放模式
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onToggleShuffle, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        AppShuffle,
+                        contentDescription = "随机播放",
+                        tint = if (state.shuffleEnabled) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
+                    Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
+                }
+                IconButton(onClick = onTogglePlay, modifier = Modifier.size(88.dp)) {
+                    Icon(
+                        imageVector = if (state.isPlaying) AppPause else Icons.Default.PlayArrow,
+                        contentDescription = if (state.isPlaying) "暂停" else "播放",
+                        tint = AccentCyan,
+                        modifier = Modifier.size(56.dp),
+                    )
+                }
+                IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
+                    Icon(AppSkipNext, contentDescription = "下一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
+                }
+                IconButton(onClick = onCycleRepeat, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        imageVector = if (state.repeatMode == Player.REPEAT_MODE_ONE) AppRepeatOne else AppRepeat,
+                        contentDescription = "循环播放",
+                        tint = if (state.repeatMode != Player.REPEAT_MODE_OFF) AccentCyan else TextSecondary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+            Spacer(Modifier.height(20.dp))
         }
-        Slider(
-            value = displayPosition.coerceIn(0f, durationMs.toFloat()),
-            onValueChange = { dragPosition = it },
-            onValueChangeFinished = {
-                dragPosition?.let { onSeek(it.toLong()) }
-                dragPosition = null
-            },
-            valueRange = 0f..durationMs.toFloat(),
-            colors = SliderDefaults.colors(
-                thumbColor = AccentCyan,
-                activeTrackColor = ProgressFill,
-                inactiveTrackColor = ProgressTrack,
-                disabledActiveTrackColor = ProgressFill,
-                disabledInactiveTrackColor = ProgressTrack,
-            ),
-        )
-
-        // 传输控制 + 播放模式
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onToggleShuffle, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    AppShuffle,
-                    contentDescription = "随机播放",
-                    tint = if (state.shuffleEnabled) AccentCyan else TextSecondary,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-            IconButton(onClick = onPrevious, modifier = Modifier.size(56.dp)) {
-                Icon(AppSkipPrevious, contentDescription = "上一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
-            }
-            IconButton(onClick = onTogglePlay, modifier = Modifier.size(88.dp)) {
-                Icon(
-                    imageVector = if (state.isPlaying) AppPause else Icons.Default.PlayArrow,
-                    contentDescription = if (state.isPlaying) "暂停" else "播放",
-                    tint = AccentCyan,
-                    modifier = Modifier.size(56.dp),
-                )
-            }
-            IconButton(onClick = onNext, modifier = Modifier.size(56.dp)) {
-                Icon(AppSkipNext, contentDescription = "下一首", tint = TextPrimary, modifier = Modifier.size(36.dp))
-            }
-            IconButton(onClick = onCycleRepeat, modifier = Modifier.size(48.dp)) {
-                Icon(
-                    imageVector = if (state.repeatMode == Player.REPEAT_MODE_ONE) AppRepeatOne else AppRepeat,
-                    contentDescription = "循环播放",
-                    tint = if (state.repeatMode != Player.REPEAT_MODE_OFF) AccentCyan else TextSecondary,
-                    modifier = Modifier.size(24.dp),
-                )
-            }
-        }
-        Spacer(Modifier.height(20.dp))
     }
 }
