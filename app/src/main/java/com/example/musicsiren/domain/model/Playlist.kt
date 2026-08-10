@@ -19,4 +19,6 @@ data class Playlist(
     val createdAt: Long = 0L,
     val coverUrl: String? = null,
     val songs: List<PlaylistSong> = emptyList(),
+    /** 云端同步标记：非空表示已上传，值即云端 id（=本地 id，全量上传/下载约定）。 */
+    val cloudId: String? = null,
 )

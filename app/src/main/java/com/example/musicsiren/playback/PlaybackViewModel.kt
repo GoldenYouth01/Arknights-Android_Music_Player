@@ -11,9 +11,12 @@ import androidx.media3.common.Player
 import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.example.musicsiren.data.repository.CloudRepository
 import com.example.musicsiren.data.repository.DownloadRepository
+import com.example.musicsiren.data.repository.HistoryRepository
 import com.example.musicsiren.data.repository.SirenRepository
 import com.example.musicsiren.domain.model.Song
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -48,6 +51,8 @@ class PlaybackViewModel(
     application: Application,
     private val sirenRepository: SirenRepository,
     private val downloadRepository: DownloadRepository,
+    private val historyRepository: HistoryRepository,
+    private val cloudRepository: CloudRepository,
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(PlaybackUiState())
@@ -65,6 +70,10 @@ class PlaybackViewModel(
     @Volatile private var currentQueue: List<Song> = emptyList()
     @Volatile private var currentCoverUrl: String? = null
     @Volatile private var currentAlbumName: String? = null
+
+    // 播放历史：当前歌曲 cid 变化时本地记录 + 防抖 3s 后上传云端（fire-and-forget）
+    @Volatile private var lastHistoryCid: String? = null
+    private var historyUploadJob: Job? = null
 
     init {
         bindController()
@@ -144,6 +153,25 @@ class PlaybackViewModel(
             repeatMode = player.repeatMode,
             shuffleEnabled = player.shuffleModeEnabled,
         )
+
+        recordHistory(song, coverUrl)
+    }
+
+    /** 当前歌曲变化时：本地记录历史 + 防抖上传云端（失败不影响播放）。 */
+    private fun recordHistory(song: Song?, coverUrl: String?) {
+        val cid = song?.cid
+        if (cid == null || cid == lastHistoryCid) return
+        lastHistoryCid = cid
+        historyRepository.addSong(song, coverUrl)
+        historyUploadJob?.cancel()
+        historyUploadJob = viewModelScope.launch {
+            delay(3_000) // 连续切歌只上传最后一次
+            if (cloudRepository.isLoggedIn) {
+                historyRepository.latestEntry()?.let { entry ->
+                    runCatching { cloudRepository.uploadHistory(entry) }
+                }
+            }
+        }
     }
 
     fun playQueue(songs: List<Song>, startIndex: Int, coverUrl: String?, albumName: String?) {

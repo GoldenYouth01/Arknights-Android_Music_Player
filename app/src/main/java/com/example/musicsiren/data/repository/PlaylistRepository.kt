@@ -86,6 +86,20 @@ class PlaylistRepository(
         persist(list.toMutableList().also { it[idx] = it[idx].copy(name = name.trim()) })
     }
 
+    /** 整体替换（云端下载 / 导入用），同时写 DataStore。 */
+    fun replaceAll(list: List<Playlist>) = persist(list)
+
+    /** 导入他人分享歌单：同 id 已存在则忽略（服务端已去重），否则置于列表最前。 */
+    fun importShared(playlist: Playlist) {
+        if (_playlists.value.any { it.id == playlist.id }) return
+        persist(listOf(playlist) + _playlists.value)
+    }
+
+    /** 上传成功后标记全部歌单已同步（cloudId = 自身 id）。 */
+    fun markAllSynced() {
+        persist(_playlists.value.map { it.copy(cloudId = it.id) })
+    }
+
     private fun persist(list: List<Playlist>) {
         _playlists.value = list
         scope.launch(Dispatchers.IO) { store.saveAll(list) }

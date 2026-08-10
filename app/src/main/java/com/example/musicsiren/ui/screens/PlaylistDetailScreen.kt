@@ -1,5 +1,9 @@
 package com.example.musicsiren.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -34,10 +39,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.musicsiren.R
@@ -53,21 +60,27 @@ import com.example.musicsiren.ui.theme.SurfaceDark
 import com.example.musicsiren.ui.theme.TextPrimary
 import com.example.musicsiren.ui.theme.TextSecondary
 
-/** 歌单详情页：播放全部 + 歌曲列表（⋮ 从歌单移除）+ 改名/删除。 */
+/** 歌单详情页：播放全部 + 歌曲列表（⋮ 从歌单移除）+ 改名/删除 + 分享。 */
 @Composable
 fun PlaylistDetailScreen(
     playlistId: String,
     container: AppContainer,
     playbackViewModel: PlaybackViewModel,
     onBack: () -> Unit,
+    onNavigateLogin: () -> Unit,
     viewModel: PlaylistDetailViewModel = viewModel {
-        PlaylistDetailViewModel(container.playlistRepository, playlistId)
+        PlaylistDetailViewModel(container.playlistRepository, container.cloudRepository, playlistId)
     },
 ) {
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    val shareCode by viewModel.shareCode.collectAsStateWithLifecycle()
+    val shareError by viewModel.shareError.collectAsStateWithLifecycle()
+    val sharing by viewModel.sharing.collectAsStateWithLifecycle()
     val playlist = playlists.find { it.id == playlistId }
     var showRename by remember { mutableStateOf(false) }
     var renameValue by remember { mutableStateOf("") }
+    var showLoginPrompt by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(Modifier.fillMaxSize().background(Background)) {
         if (playlist == null) {
@@ -105,6 +118,11 @@ fun PlaylistDetailScreen(
                         showRename = true
                     }) {
                         Icon(Icons.Default.Edit, contentDescription = "改名", tint = TextSecondary)
+                    }
+                    IconButton(onClick = {
+                        if (viewModel.isLoggedIn) viewModel.share() else showLoginPrompt = true
+                    }) {
+                        Icon(Icons.Default.Share, contentDescription = "分享歌单", tint = TextSecondary)
                     }
                     IconButton(onClick = {
                         viewModel.delete()
@@ -184,6 +202,63 @@ fun PlaylistDetailScreen(
                 ) { Text("保存", color = AccentCyan) }
             },
             dismissButton = { TextButton(onClick = { showRename = false }) { Text("取消") } },
+            containerColor = SurfaceDark,
+        )
+    }
+
+    if (showLoginPrompt) {
+        AlertDialog(
+            onDismissRequest = { showLoginPrompt = false },
+            title = { Text("需要登录") },
+            text = { Text("登录后才能分享歌单到云端。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLoginPrompt = false
+                    onNavigateLogin()
+                }) { Text("去登录", color = AccentCyan) }
+            },
+            dismissButton = { TextButton(onClick = { showLoginPrompt = false }) { Text("取消") } },
+            containerColor = SurfaceDark,
+        )
+    }
+
+    shareCode?.let { code ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearShare() },
+            title = { Text("分享歌单") },
+            text = {
+                Column {
+                    Text("把以下分享码发给好友，对方在「导入分享码」粘贴即可保存此歌单：")
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = code,
+                        style = SirenType.DisplaySans.copy(fontSize = 24.sp),
+                        color = AccentCyan,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    clipboard.setPrimaryClip(ClipData.newPlainText("shareCode", code))
+                    Toast.makeText(context, "已复制分享码", Toast.LENGTH_SHORT).show()
+                }) { Text("复制", color = AccentCyan) }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.clearShare() }) { Text(if (sharing) "获取中…" else "关闭") }
+            },
+            containerColor = SurfaceDark,
+        )
+    }
+
+    shareError?.let { err ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearShare() },
+            title = { Text("分享失败") },
+            text = { Text(err) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearShare() }) { Text("知道了", color = AccentCyan) }
+            },
             containerColor = SurfaceDark,
         )
     }

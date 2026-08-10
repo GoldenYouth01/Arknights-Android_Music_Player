@@ -32,6 +32,8 @@ class MainActivity : ComponentActivity() {
                         application = application,
                         sirenRepository = container.sirenRepository,
                         downloadRepository = container.downloadRepository,
+                        historyRepository = container.historyRepository,
+                        cloudRepository = container.cloudRepository,
                     )
                 }
                 MusicAppRoot(container = container, playbackViewModel = playbackViewModel)

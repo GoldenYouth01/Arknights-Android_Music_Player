@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitFactory {
     private const val BASE_URL = "https://monster-siren.hypergryph.com/"
+    /** 自建云端 API 地址（公开，非机密）。 */
+    const val CLOUD_BASE_URL = "https://sevencentury.cn/"
 
     fun createJson(): Json = Json {
         ignoreUnknownKeys = true
@@ -27,6 +29,26 @@ object RetrofitFactory {
             .build()
     }
 
+    /** 云端 OkHttp：带 Bearer 鉴权拦截器（token 从内存态 AuthTokenProvider 同步读，不可在拦截器挂起）。
+     *  日志保持 BASIC，避免 Authorization 头泄露进 logcat。 */
+    fun createCloudOkHttpClient(tokenProvider: AuthTokenProvider): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC }
+        return OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val token = tokenProvider.token
+                val request = if (token != null) {
+                    chain.request().newBuilder().header("Authorization", "Bearer $token").build()
+                } else {
+                    chain.request()
+                }
+                chain.proceed(request)
+            }
+            .addInterceptor(logging)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
     fun createApi(json: Json, client: OkHttpClient): SirenApi {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -34,5 +56,14 @@ object RetrofitFactory {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(SirenApi::class.java)
+    }
+
+    fun createCloudApi(json: Json, client: OkHttpClient): CloudApi {
+        return Retrofit.Builder()
+            .baseUrl(CLOUD_BASE_URL)
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(CloudApi::class.java)
     }
 }

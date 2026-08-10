@@ -45,4 +45,22 @@ class PlaylistTest {
         val decoded = json.decodeFromString(ListSerializer(Playlist.serializer()), encoded)
         assertEquals(list, decoded)
     }
+
+    @Test
+    fun `old json without cloudId still deserializes with cloudId null`() {
+        // v0.3.x 及之前持久化的歌单没有 cloudId 字段，必须向后兼容（默认 null = 未同步）
+        val oldJson = """[{"id":"1","name":"旧歌单","createdAt":0,"songs":[]}]"""
+        val decoded = json.decodeFromString(ListSerializer(Playlist.serializer()), oldJson)
+        assertEquals(1, decoded.size)
+        assertEquals("旧歌单", decoded[0].name)
+        assertEquals(null, decoded[0].cloudId)
+    }
+
+    @Test
+    fun `playlist with cloudId round trips`() {
+        val pl = Playlist(id = "1", name = "已同步", cloudId = "1")
+        val round = json.decodeFromString(Playlist.serializer(), json.encodeToString(Playlist.serializer(), pl))
+        assertEquals("1", round.cloudId)
+        assertEquals(pl, round)
+    }
 }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -45,13 +46,19 @@ import com.example.musicsiren.ui.components.AppDownload
 import com.example.musicsiren.ui.components.AppQueueMusic
 import com.example.musicsiren.ui.components.PlayerBar
 import com.example.musicsiren.ui.components.PlayerDrawer
+import com.example.musicsiren.ui.screens.AccountScreen
 import com.example.musicsiren.ui.screens.AlbumDetailScreen
 import com.example.musicsiren.ui.screens.AlbumListScreen
+import com.example.musicsiren.ui.screens.CloudPlaylistsScreen
 import com.example.musicsiren.ui.screens.DownloadsScreen
+import com.example.musicsiren.ui.screens.ForgotPasswordScreen
+import com.example.musicsiren.ui.screens.HistoryScreen
+import com.example.musicsiren.ui.screens.LoginScreen
 import com.example.musicsiren.ui.screens.LyricsViewModel
 import com.example.musicsiren.ui.screens.NowPlayingScreen
 import com.example.musicsiren.ui.screens.PlaylistDetailScreen
 import com.example.musicsiren.ui.screens.PlaylistsScreen
+import com.example.musicsiren.ui.screens.RegisterScreen
 import com.example.musicsiren.ui.screens.SearchScreen
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.Background
@@ -90,7 +97,7 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                             onCycleRepeat = { playbackViewModel.cycleRepeatMode() },
                         )
                     }
-                    if (currentRoute in setOf(Routes.ALBUMS, Routes.SEARCH, Routes.PLAYLISTS, Routes.DOWNLOADS)) {
+                    if (currentRoute in setOf(Routes.ALBUMS, Routes.SEARCH, Routes.PLAYLISTS, Routes.DOWNLOADS, Routes.ACCOUNT)) {
                         SirenNavBar(
                             currentRoute = currentRoute,
                             onSelect = { route ->
@@ -134,6 +141,49 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                         playbackViewModel = playbackViewModel,
                     )
                 }
+                composable(Routes.ACCOUNT) {
+                    AccountScreen(
+                        container = container,
+                        onNavigateLogin = { navController.navigate(Routes.LOGIN) },
+                        onNavigateRegister = { navController.navigate(Routes.REGISTER) },
+                        onNavigateCloudPlaylists = { navController.navigate(Routes.CLOUD_PLAYLISTS) },
+                        onNavigateHistory = { navController.navigate(Routes.CLOUD_HISTORY) },
+                    )
+                }
+                composable(Routes.LOGIN) {
+                    LoginScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
+                        onNavigateRegister = { navController.navigate(Routes.REGISTER) },
+                        onNavigateForgot = { navController.navigate(Routes.FORGOT) },
+                    )
+                }
+                composable(Routes.REGISTER) {
+                    RegisterScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.FORGOT) {
+                    ForgotPasswordScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
+                composable(Routes.CLOUD_PLAYLISTS) {
+                    CloudPlaylistsScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
+                        onPlaylistClick = { id -> navController.navigate(Routes.playlistDetail(id)) },
+                    )
+                }
+                composable(Routes.CLOUD_HISTORY) {
+                    HistoryScreen(
+                        container = container,
+                        playbackViewModel = playbackViewModel,
+                        onBack = { navController.popBackStack() },
+                    )
+                }
                 composable(Routes.ALBUM_DETAIL) { entry ->
                     AlbumDetailScreen(
                         cid = entry.arguments?.getString("cid") ?: "",
@@ -148,6 +198,7 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                         container = container,
                         playbackViewModel = playbackViewModel,
                         onBack = { navController.popBackStack() },
+                        onNavigateLogin = { navController.navigate(Routes.LOGIN) },
                     )
                 }
             }
@@ -223,6 +274,14 @@ private fun SirenNavBar(currentRoute: String?, onSelect: (String) -> Unit) {
                 route = Routes.DOWNLOADS,
                 selected = currentRoute == Routes.DOWNLOADS,
                 onClick = { onSelect(Routes.DOWNLOADS) },
+                modifier = Modifier.weight(1f),
+            )
+            NavItem(
+                label = "账号",
+                icon = Icons.Default.Person,
+                route = Routes.ACCOUNT,
+                selected = currentRoute == Routes.ACCOUNT,
+                onClick = { onSelect(Routes.ACCOUNT) },
                 modifier = Modifier.weight(1f),
             )
         }
