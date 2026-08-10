@@ -104,7 +104,33 @@ class PlaybackViewModel(
     private fun updateFromPlayer() {
         val player = controller ?: return
         val index = player.currentMediaItemIndex
-        val song = currentQueue.getOrNull(index)
+        var song = currentQueue.getOrNull(index)
+        var coverUrl = currentCoverUrl
+        var albumName = currentAlbumName
+
+        // 应用重启后内存队列丢失，但存活服务中的播放器仍持有 MediaItem：
+        // 从 metadata 重建队列（封面/歌名立即可恢复），并异步补齐 sourceUrl/lyricUrl（歌词页需要）
+        if (song == null && currentQueue.isEmpty() && player.mediaItemCount > 0) {
+            val rebuilt = (0 until player.mediaItemCount).map { songFromMediaItem(player.getMediaItemAt(it)) }
+            if (rebuilt.isNotEmpty()) {
+                currentQueue = rebuilt
+                val md = player.getMediaItemAt(index).mediaMetadata
+                coverUrl = md.artworkUri?.toString()
+                albumName = md.albumTitle?.toString()
+                currentCoverUrl = coverUrl
+                currentAlbumName = albumName
+                song = currentQueue.getOrNull(index)
+                viewModelScope.launch {
+                    val target = currentQueue
+                    val enriched = enrichWithUrls(target)
+                    if (currentQueue === target) {   // 期间未被 playQueue 替换才应用
+                        currentQueue = enriched
+                        updateFromPlayer()
+                    }
+                }
+            }
+        }
+
         _uiState.value = PlaybackUiState(
             hasCurrent = player.mediaItemCount > 0,
             isPlaying = player.isPlaying,
@@ -112,8 +138,8 @@ class PlaybackViewModel(
             queue = currentQueue,
             positionMs = player.currentPosition,
             durationMs = player.duration.coerceAtLeast(0L),
-            coverUrl = currentCoverUrl,
-            albumName = currentAlbumName,
+            coverUrl = coverUrl,
+            albumName = albumName,
             isDownloaded = song?.let { downloadRepository.localPathFor(it.cid) != null } == true,
             repeatMode = player.repeatMode,
             shuffleEnabled = player.shuffleModeEnabled,
@@ -157,6 +183,19 @@ class PlaybackViewModel(
                     .build()
             )
             .build()
+    }
+
+    /** 从播放器 MediaItem 的 metadata 重建轻量 Song（重启恢复用；sourceUrl/lyricUrl 由 enrichWithUrls 补齐）。 */
+    private fun songFromMediaItem(media: MediaItem): Song {
+        val md = media.mediaMetadata
+        return Song(
+            cid = media.mediaId,
+            name = md.title?.toString() ?: "",
+            albumCid = null,
+            artists = md.artist?.toString()?.split(" / ")?.filter { it.isNotBlank() } ?: emptyList(),
+            sourceUrl = null,
+            lyricUrl = null,
+        )
     }
 
     /**
