@@ -128,6 +128,8 @@ class PlaybackViewModel(
         currentAlbumName = albumName
         viewModelScope.launch {
             val enriched = enrichWithUrls(songs)
+            // 补全 sourceUrl/lyricUrl 后再作为 UI 队列（歌词页需要 lyricUrl）
+            currentQueue = enriched
             val items = enriched.map { song -> buildMediaItem(song, coverUrl, albumName) }
             player.setMediaItems(items, startIndex.coerceIn(items.indices), 0L)
             player.prepare()

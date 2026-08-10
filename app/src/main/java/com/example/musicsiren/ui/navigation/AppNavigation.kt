@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,6 +48,7 @@ import com.example.musicsiren.ui.components.PlayerDrawer
 import com.example.musicsiren.ui.screens.AlbumDetailScreen
 import com.example.musicsiren.ui.screens.AlbumListScreen
 import com.example.musicsiren.ui.screens.DownloadsScreen
+import com.example.musicsiren.ui.screens.LyricsViewModel
 import com.example.musicsiren.ui.screens.NowPlayingScreen
 import com.example.musicsiren.ui.screens.PlaylistDetailScreen
 import com.example.musicsiren.ui.screens.PlaylistsScreen
@@ -63,6 +65,9 @@ import com.example.musicsiren.ui.theme.TextSecondary
 @Composable
 fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) {
     val navController = rememberNavController()
+    val lyricsViewModel: LyricsViewModel = viewModel {
+        LyricsViewModel(container.lyricsRepository, playbackViewModel)
+    }
     val uiState by playbackViewModel.uiState.collectAsStateWithLifecycle()
     val nowPlayingVisible by playbackViewModel.nowPlayingVisible.collectAsStateWithLifecycle()
     val drawerVisible by playbackViewModel.drawerVisible.collectAsStateWithLifecycle()
@@ -156,6 +161,7 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
         ) {
             NowPlayingScreen(
                 state = uiState,
+                lyricsViewModel = lyricsViewModel,
                 onBack = { playbackViewModel.hideNowPlaying() },
                 onTogglePlay = { playbackViewModel.togglePlay() },
                 onNext = { playbackViewModel.next() },

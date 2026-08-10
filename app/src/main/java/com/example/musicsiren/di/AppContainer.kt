@@ -6,6 +6,7 @@ import com.example.musicsiren.data.local.PlaylistStore
 import com.example.musicsiren.data.remote.RetrofitFactory
 import com.example.musicsiren.data.remote.SirenApi
 import com.example.musicsiren.data.repository.DownloadRepository
+import com.example.musicsiren.data.repository.LyricsRepository
 import com.example.musicsiren.data.repository.PlaylistRepository
 import com.example.musicsiren.data.repository.SirenRepository
 import com.example.musicsiren.data.search.SongCatalog
@@ -23,6 +24,7 @@ class AppContainer(context: Context) {
 
     val sirenRepository = SirenRepository(api)
     val songCatalog = SongCatalog(sirenRepository)
+    val lyricsRepository = LyricsRepository(okHttpClient)
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val downloadStore = DownloadStore(context.applicationContext)
