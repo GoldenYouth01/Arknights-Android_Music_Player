@@ -38,6 +38,8 @@ fun RegisterScreen(
     var nickname by remember { mutableStateOf("") }
 
     val passwordValid = password.length >= 8
+    // 防呆：昵称与密码相同（自动填充/误输入把密码填进昵称栏）应阻止
+    val nicknameConflict = nickname.isNotBlank() && nickname == password
 
     AuthScaffold(title = "注册", subtitle = "SIGN UP", onBack = onBack) {
         AuthTextField(email, { email = it }, label = "邮箱")
@@ -55,6 +57,10 @@ fun RegisterScreen(
             Text("密码至少 8 位", style = SirenType.Body, color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(8.dp))
         }
+        if (nicknameConflict) {
+            Text("昵称不能与密码相同", style = SirenType.Body, color = MaterialTheme.colorScheme.error)
+            Spacer(Modifier.height(8.dp))
+        }
         error?.let {
             Text(it, style = SirenType.Body, color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(8.dp))
@@ -70,7 +76,7 @@ fun RegisterScreen(
                     onSuccess = onBack,
                 )
             },
-            enabled = email.isNotBlank() && code.isNotBlank() && passwordValid && !submitting,
+            enabled = email.isNotBlank() && code.isNotBlank() && passwordValid && !nicknameConflict && !submitting,
             modifier = Modifier.fillMaxWidth(),
         ) {
             if (submitting) {

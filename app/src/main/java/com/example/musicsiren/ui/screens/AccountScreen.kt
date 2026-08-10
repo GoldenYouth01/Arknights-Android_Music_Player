@@ -2,7 +2,6 @@ package com.example.musicsiren.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,10 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
@@ -28,13 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.musicsiren.di.AppContainer
 import com.example.musicsiren.domain.model.AuthSession
+import com.example.musicsiren.ui.components.AvatarImage
 import com.example.musicsiren.ui.components.HairlineDivider
 import com.example.musicsiren.ui.theme.AccentCyan
 import com.example.musicsiren.ui.theme.Background
@@ -52,6 +49,7 @@ fun AccountScreen(
     onNavigateRegister: () -> Unit,
     onNavigateCloudPlaylists: () -> Unit,
     onNavigateHistory: () -> Unit,
+    onNavigateAccountInfo: () -> Unit,
     viewModel: AccountViewModel = viewModel {
         AccountViewModel(container.authRepository, container.cloudRepository)
     },
@@ -93,6 +91,7 @@ fun AccountScreen(
                 onUpload = viewModel::upload,
                 onDownload = { confirmDownload = true },
                 onImport = { showImport = true },
+                onNavigateAccountInfo = onNavigateAccountInfo,
                 onNavigateCloudPlaylists = onNavigateCloudPlaylists,
                 onNavigateHistory = onNavigateHistory,
                 onLogout = { confirmLogout = true },
@@ -204,25 +203,20 @@ private fun LoggedInContent(
     onUpload: () -> Unit,
     onDownload: () -> Unit,
     onImport: () -> Unit,
+    onNavigateAccountInfo: () -> Unit,
     onNavigateCloudPlaylists: () -> Unit,
     onNavigateHistory: () -> Unit,
     onLogout: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        // 用户信息头部
-        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier.size(52.dp).clip(CircleShape).background(AccentCyan.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = session.nickname?.firstOrNull()?.uppercase() ?: "♪",
-                    style = SirenType.DisplaySerif,
-                    color = AccentCyan,
-                )
-            }
+        // 用户信息头部：点击进入账号信息页（改头像/昵称）
+        Row(
+            Modifier.fillMaxWidth().clickable(onClick = onNavigateAccountInfo).padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AvatarImage(url = session.avatarUrl, nickname = session.nickname, size = 52.dp)
             Spacer(Modifier.width(16.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     text = session.nickname?.ifBlank { "用户" } ?: "用户",
                     style = SirenType.DisplaySerif,
@@ -231,6 +225,7 @@ private fun LoggedInContent(
                 Spacer(Modifier.height(2.dp))
                 Text(session.email, style = SirenType.Body, color = TextSecondary)
             }
+            Text("编辑", style = SirenType.Label, color = TextSecondary)
         }
         HairlineDivider()
 

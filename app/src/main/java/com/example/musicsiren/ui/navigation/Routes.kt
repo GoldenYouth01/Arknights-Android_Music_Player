@@ -9,6 +9,7 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val FORGOT = "forgot"
+    const val ACCOUNT_INFO = "account/info"
     const val CLOUD_PLAYLISTS = "cloud/playlists"
     const val CLOUD_HISTORY = "cloud/history"
     const val ALBUM_DETAIL = "album/{cid}"

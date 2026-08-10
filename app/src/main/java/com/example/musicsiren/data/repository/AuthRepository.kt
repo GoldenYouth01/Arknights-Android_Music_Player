@@ -8,6 +8,7 @@ import com.example.musicsiren.data.remote.LoginReq
 import com.example.musicsiren.data.remote.RegisterReq
 import com.example.musicsiren.data.remote.ResetPasswordReq
 import com.example.musicsiren.data.remote.SendCodeReq
+import com.example.musicsiren.data.remote.UpdateNicknameReq
 import com.example.musicsiren.domain.model.AuthSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +17,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * 账号会话的单一事实源：StateFlow<AuthSession?> + AuthStore 持久化 + AuthTokenProvider 供拦截器同步读。
@@ -48,23 +52,39 @@ class AuthRepository(
 
     suspend fun register(email: String, passwordHash: String, code: String, nickname: String? = null) {
         val dto = api.register(RegisterReq(email.trim().lowercase(), passwordHash, code, nickname)).cloudDataOrThrow()
-        setSession(dto.token, dto.user.id, dto.user.email, dto.user.nickname)
+        setSession(dto.token, dto.user.id, dto.user.email, dto.user.nickname, dto.user.avatarUrl)
     }
 
     suspend fun login(email: String, passwordHash: String) {
         val dto = api.login(LoginReq(email.trim().lowercase(), passwordHash)).cloudDataOrThrow()
-        setSession(dto.token, dto.user.id, dto.user.email, dto.user.nickname)
+        setSession(dto.token, dto.user.id, dto.user.email, dto.user.nickname, dto.user.avatarUrl)
     }
 
     suspend fun resetPassword(email: String, code: String, passwordHash: String) {
         api.resetPassword(ResetPasswordReq(email.trim().lowercase(), code, passwordHash)).cloudDataOrThrowEmpty()
     }
 
-    /** token 仍有效时刷新用户信息（昵称等）。 */
+    /** token 仍有效时刷新用户信息（昵称/头像等）。 */
     suspend fun refreshMe() {
         val current = _session.value ?: return
         val user = api.me().cloudDataOrThrow()
-        setSession(current.token, user.id, user.email, user.nickname)
+        setSession(current.token, user.id, user.email, user.nickname, user.avatarUrl)
+    }
+
+    /** 修改昵称。 */
+    suspend fun updateNickname(nickname: String) {
+        val current = _session.value ?: return
+        val user = api.updateNickname(UpdateNicknameReq(nickname.trim())).cloudDataOrThrow()
+        setSession(current.token, user.id, user.email, user.nickname, user.avatarUrl)
+    }
+
+    /** 上传头像（客户端已裁剪为正方形 PNG 字节）。 */
+    suspend fun uploadAvatar(pngBytes: ByteArray) {
+        val current = _session.value ?: return
+        val body = pngBytes.toRequestBody("image/png".toMediaType())
+        val part = MultipartBody.Part.createFormData("avatar", "avatar.png", body)
+        val user = api.uploadAvatar(part).cloudDataOrThrow()
+        setSession(current.token, user.id, user.email, user.nickname, user.avatarUrl)
     }
 
     fun logout() {
@@ -73,8 +93,8 @@ class AuthRepository(
         scope.launch(Dispatchers.IO) { store.clear() }
     }
 
-    private fun setSession(token: String, userId: Int, email: String, nickname: String?) {
-        val session = AuthSession(token, userId, email, nickname)
+    private fun setSession(token: String, userId: Int, email: String, nickname: String?, avatarUrl: String?) {
+        val session = AuthSession(token, userId, email, nickname, avatarUrl)
         _session.value = session
         tokenProvider.token = token
         scope.launch(Dispatchers.IO) { store.save(session) }

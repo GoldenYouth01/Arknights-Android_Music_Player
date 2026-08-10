@@ -5,6 +5,7 @@ import com.example.musicsiren.data.remote.CloudPlaylistDto
 import com.example.musicsiren.data.remote.EmptyData
 import com.example.musicsiren.data.remote.HistoryListDto
 import com.example.musicsiren.data.remote.LoginDataDto
+import com.example.musicsiren.data.remote.UserDto
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -74,6 +75,22 @@ class CloudDtoParseTest {
         assertEquals("塞壬唱片", list[0].songName)
         assertEquals(1786780800000L, list[0].playedAt)
         assertNull(list[0].coverUrl)
+    }
+
+    @Test
+    fun `user dto parses avatarUrl`() {
+        val raw = """{"id":3,"email":"a@b.com","nickname":"博士","avatarUrl":"https://sevencentury.cn/avatars/u3_1.png"}"""
+        val u = json.decodeFromString(UserDto.serializer(), raw)
+        assertEquals(3, u.id)
+        assertEquals("博士", u.nickname)
+        assertEquals("https://sevencentury.cn/avatars/u3_1.png", u.avatarUrl)
+    }
+
+    @Test
+    fun `user dto avatarUrl defaults null`() {
+        val raw = """{"id":1,"email":"a@b.com"}"""
+        val u = json.decodeFromString(UserDto.serializer(), raw)
+        assertEquals(null, u.avatarUrl)
     }
 
     @Test

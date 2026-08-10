@@ -40,6 +40,12 @@ data class UserDto(
     val id: Int,
     val email: String,
     val nickname: String? = null,
+    val avatarUrl: String? = null,
+)
+
+@Serializable
+data class UpdateNicknameReq(
+    val nickname: String,
 )
 
 @Serializable

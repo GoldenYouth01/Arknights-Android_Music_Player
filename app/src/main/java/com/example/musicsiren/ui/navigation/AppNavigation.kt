@@ -46,6 +46,7 @@ import com.example.musicsiren.ui.components.AppDownload
 import com.example.musicsiren.ui.components.AppQueueMusic
 import com.example.musicsiren.ui.components.PlayerBar
 import com.example.musicsiren.ui.components.PlayerDrawer
+import com.example.musicsiren.ui.screens.AccountInfoScreen
 import com.example.musicsiren.ui.screens.AccountScreen
 import com.example.musicsiren.ui.screens.AlbumDetailScreen
 import com.example.musicsiren.ui.screens.AlbumListScreen
@@ -148,6 +149,13 @@ fun MusicAppRoot(container: AppContainer, playbackViewModel: PlaybackViewModel) 
                         onNavigateRegister = { navController.navigate(Routes.REGISTER) },
                         onNavigateCloudPlaylists = { navController.navigate(Routes.CLOUD_PLAYLISTS) },
                         onNavigateHistory = { navController.navigate(Routes.CLOUD_HISTORY) },
+                        onNavigateAccountInfo = { navController.navigate(Routes.ACCOUNT_INFO) },
+                    )
+                }
+                composable(Routes.ACCOUNT_INFO) {
+                    AccountInfoScreen(
+                        container = container,
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable(Routes.LOGIN) {

@@ -9,4 +9,5 @@ data class AuthSession(
     val userId: Int,
     val email: String,
     val nickname: String? = null,
+    val avatarUrl: String? = null,
 )
