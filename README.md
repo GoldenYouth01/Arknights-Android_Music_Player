@@ -11,20 +11,26 @@
 
 ▶️ **[下载最新版 APK](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases/latest/download/app-release.apk)**
 
-- 版本 `v0.2.0` · 约 13 MB · 正式签名版，可直接安装
+- 版本 `v0.4.0` · 约 13 MB · 正式签名版，可直接安装
 - 历史版本见 [Releases 页面](https://github.com/GoldenYouth01/Arknights-Android_Music_Player/releases)
 - 安装提示：Android 手机下载后直接打开 APK 安装；如提示"未知来源"，在设置中允许本次安装即可
 
 ## 功能
 
-- **专辑浏览**：专辑列表+ 专辑详情，支持**下拉刷新 / 一键刷新**随时获取最新内容
+- **专辑浏览**：专辑列表 + 专辑详情，支持**下拉刷新 / 一键刷新**随时获取最新内容
 - **音乐播放**：Media3 后台流式播放（WAV 无损）、媒体通知、锁屏控制、全屏播放页、上滑播放队列抽屉
 - **搜索**：歌曲走本地索引，专辑走 API；中文 / 英文大小写不敏感
+- **歌单**：创建 / 改名 / 删除，加入 / 移除歌曲，歌曲封面
+- **歌词**：全屏播放页左滑进歌词页，当前行青蓝高亮 + 自动滚动
 - **离线下载**：WorkManager 后台下载，进度展示、离线播放、删除释放空间
+- **账号系统**（v0.4.0）：注册 / 登录 / 找回密码，163 邮箱验证码；密码客户端哈希 + 服务端 bcrypt，全程 HTTPS
+- **云端歌单**（v0.4.0）：歌单全量上传 / 下载，8 位分享码生成与导入
+- **播放历史**（v0.4.0）：本地记录 + 登录后自动同步云端，历史页一键播放
 
 ## 技术栈
 
 Kotlin · Jetpack Compose  · Media3 · Retrofit + kotlinx-serialization · Coil 3 · WorkManager · DataStore
+· 自建云端后端（PHP，独立私有仓库，账号系统 + 云端歌单 + 播放历史）
 
 ## 环境要求
 
