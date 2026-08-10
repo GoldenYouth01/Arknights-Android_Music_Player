@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +58,6 @@ import com.example.musicsiren.ui.theme.SirenType
 import com.example.musicsiren.ui.theme.TextPrimary
 import com.example.musicsiren.ui.theme.TextSecondary
 import com.example.musicsiren.ui.util.formatClock
-import kotlinx.coroutines.launch
 
 /**
  * 全屏播放页：横向翻页 —— 页0 封面；页1 歌词（左滑进入，右滑返回）。
@@ -81,16 +79,9 @@ fun NowPlayingScreen(
 ) {
     val lyricsUiState by lyricsViewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState { 2 }
-    val scope = rememberCoroutineScope()
 
-    // 返回：歌词页可见时先回封面页；否则关闭播放页
-    BackHandler(enabled = true) {
-        if (pagerState.currentPage == 1) {
-            scope.launch { pagerState.animateScrollToPage(0) }
-        } else {
-            onBack()
-        }
-    }
+    // 返回：歌词页与封面页均直接退出播放页
+    BackHandler(enabled = true) { onBack() }
 
     // 进度条拖动暂存值（两页共享页脚，上提到本作用域，翻页时保持）
     val durationMs = state.durationMs.coerceAtLeast(1L)

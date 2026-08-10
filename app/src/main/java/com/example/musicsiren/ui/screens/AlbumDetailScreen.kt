@@ -95,7 +95,7 @@ fun AlbumDetailScreen(
                     Box {
                         CoverImage(
                             url = detail.album.coverDeUrl ?: detail.album.coverUrl,
-                            modifier = Modifier.fillMaxWidth().height(200.dp).blur(30.dp),
+                            modifier = Modifier.fillMaxWidth().height(200.dp).blur(8.dp),
                         )
                         Box(Modifier.matchParentSize().background(ScrimBlack))
                         Row(
